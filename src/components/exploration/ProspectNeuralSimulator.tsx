@@ -8,7 +8,10 @@ import {
    Search,
    ChevronRight,
    Database,
-   Radio
+   Radio,
+   Eye,
+   EyeOff,
+   Target
 } from 'lucide-react';
 import {
    Radar,
@@ -30,6 +33,8 @@ import { getExplorationSample } from '../../lib/sampleData';
 export function ProspectNeuralSimulator() {
    const { data, update } = useExploration();
    const cos = data.prospect.cos;
+   const [showRiskPanel, setShowRiskPanel] = useState(true);
+   const [optimized, setOptimized] = useState(false);
 
    const factors = { source: cos.source, reservoir: cos.reservoir, trap: cos.trap, seal: cos.seal, migration: cos.migration };
 
@@ -66,6 +71,7 @@ export function ProspectNeuralSimulator() {
       const pg = s.riskSource * s.riskReservoir * s.riskSeal * s.riskTrap * s.riskMigration * s.riskTiming;
       const stoiip = (s.areaAcres * s.grossIntervalFt * s.netToGross * s.porosity * (1 - s.waterSaturation)) / (s.formationVolumeFactor * 7758);
       const stoiipMMstb = stoiip / 1e6;
+      setOptimized(false);
       update({
          prospect: {
             name: s.prospectName,
@@ -89,31 +95,57 @@ export function ProspectNeuralSimulator() {
       });
    }, [update]);
 
+   const handleOptimize = useCallback(() => {
+      // Set all risk factors to their optimal values (1.0 = maximum confidence)
+      const optimalCos = {
+         source: 1.0,
+         reservoir: 1.0,
+         trap: 1.0,
+         seal: 1.0,
+         migration: 1.0,
+         timing: cos.timing,
+         pg: 1.0,
+      };
+      update({ prospect: { ...data.prospect, cos: optimalCos } });
+      setOptimized(true);
+   }, [cos.timing, update, data.prospect]);
+
    return (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-8 bg-panel-bg border border-border-subtle rounded-3xl shadow-2xl relative overflow-hidden group mb-8">
          <div className="absolute -top-24 -right-24 w-96 h-96 bg-brand-primary/5 rounded-full blur-[120px] pointer-events-none" />
 
          {/* Control Panel */}
          <div className="lg:col-span-3 space-y-6 relative z-10">
-            <div className="flex items-center gap-3 mb-8">
+            <div className="flex items-center gap-3 mb-2">
                <div className="w-10 h-10 bg-brand-primary/10 rounded-2xl flex items-center justify-center text-brand-primary">
                   <Search size={20} className="animate-pulse" />
                </div>
-               <div>
+               <div className="flex-1">
                   <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Prospect-AI Terminal</h3>
                   <p className="text-[11px] text-slate-500 font-mono uppercase tracking-widest">Risk De-Risking System</p>
                </div>
+               <button
+                  onClick={() => setShowRiskPanel(v => !v)}
+                  className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+                  title={showRiskPanel ? "Hide Risk Panel" : "Show Risk Panel"}
+               >
+                  {showRiskPanel ? <EyeOff size={14} className="text-slate-400" /> : <Eye size={14} className="text-brand-primary" />}
+               </button>
             </div>
 
-            <SampleDataLoader loadSample={handleLoadSample} label="Load Sample Prospect" stageName="Exploration" />
+            {showRiskPanel && (
+               <>
+                  <SampleDataLoader loadSample={handleLoadSample} label="Load Sample Prospect" stageName="Exploration" />
 
-            <div className="space-y-4">
-               <RiskInput label="Source Presence" value={factors.source} onChange={v => setFactor('source', v)} />
-               <RiskInput label="Reservoir Quality" value={factors.reservoir} onChange={v => setFactor('reservoir', v)} />
-               <RiskInput label="Trap Geometry" value={factors.trap} onChange={v => setFactor('trap', v)} />
-               <RiskInput label="Seal Integrity" value={factors.seal} onChange={v => setFactor('seal', v)} />
-               <RiskInput label="Migration Timing" value={factors.migration} onChange={v => setFactor('migration', v)} />
-            </div>
+                  <div className="space-y-4">
+                     <RiskInput label="Source Presence" value={factors.source} onChange={v => setFactor('source', v)} />
+                     <RiskInput label="Reservoir Quality" value={factors.reservoir} onChange={v => setFactor('reservoir', v)} />
+                     <RiskInput label="Trap Geometry" value={factors.trap} onChange={v => setFactor('trap', v)} />
+                     <RiskInput label="Seal Integrity" value={factors.seal} onChange={v => setFactor('seal', v)} />
+                     <RiskInput label="Migration Timing" value={factors.migration} onChange={v => setFactor('migration', v)} />
+                  </div>
+               </>
+            )}
          </div>
 
          {/* Main Display */}
@@ -178,8 +210,20 @@ export function ProspectNeuralSimulator() {
                   <MetricRow label="Seal Risk" value="Caprock Failure" status="warning" />
                </div>
 
-               <button className="w-full mt-8 py-4 bg-brand-primary text-white rounded-[20px] text-[10px] font-black uppercase tracking-widest hover:scale-[0.98] transition-all flex items-center justify-center gap-2 italic shadow-lg shadow-brand-primary/20">
-                  Optimize Drilling Target <ChevronRight size={14} />
+               <button
+                  onClick={handleOptimize}
+                  className={cn(
+                     "w-full mt-8 py-4 rounded-[20px] text-[10px] font-black uppercase tracking-widest hover:scale-[0.98] transition-all flex items-center justify-center gap-2 italic shadow-lg",
+                     optimized
+                        ? "bg-emerald-600 text-white shadow-emerald-600/20"
+                        : "bg-brand-primary text-white shadow-brand-primary/20"
+                  )}
+               >
+                  {optimized ? (
+                     <>Target Optimized <Target size={14} /></>
+                  ) : (
+                     <>Optimize Drilling Target <ChevronRight size={14} /></>
+                  )}
                </button>
             </div>
          </div>
