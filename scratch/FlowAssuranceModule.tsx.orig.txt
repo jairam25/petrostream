@@ -1,0 +1,6 @@
+"function FlowAssuranceSimulator3D({ mode, title, params }: { mode: string, title: string, params: any }) {\
+   const { temp = 120, press = 4000, wc = 50, co2 = 5, wellTemp = 90, hydrateTemp = 60 } = params;\
+   \
+   return (\
+      <div className=\"glass-
+<truncated 7256 bytes>

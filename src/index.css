@@ -1,0 +1,321 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Brand Colors - Standard Technical Blue */
+  --color-brand-primary: #3182ce;
+  --color-brand-primary-hover: #2b6cb0;
+  --color-brand-primary-active: #2c5282;
+  --color-brand-secondary: #4fd1c5;
+
+  /* Semantic Status Colors */
+  --color-status-success: #48bb78;
+  --color-status-warning: #ed8936;
+  --color-status-error: #f56565;
+
+  /* Dense Industry Palette */
+  --color-industry-label: #8B949E;
+  --color-industry-value: #E6EDF3;
+  --color-industry-unit: #6E7681;
+
+  /* Default Theme (Stealth) */
+  --color-app-bg: #05070a;
+  --color-panel-bg: rgba(13, 17, 23, 0.7);
+  --color-elevated-bg: rgba(33, 38, 45, 0.8);
+  --color-hover-bg: rgba(48, 54, 61, 0.9);
+  --color-border-subtle: rgba(48, 54, 61, 0.3);
+  --color-text-primary: #F7FAFC;
+  --color-text-secondary: #A0AEC0;
+  --color-text-tertiary: #718096;
+  --color-text-annotation: #4A5568;
+}
+
+[data-theme='deep-blue'] {
+  --color-app-bg: #020617;
+  --color-panel-bg: rgba(15, 23, 42, 0.7);
+  --color-elevated-bg: rgba(30, 41, 59, 0.8);
+  --color-hover-bg: rgba(51, 65, 85, 0.9);
+  --color-border-subtle: rgba(30, 41, 59, 0.4);
+  --color-brand-primary: #38bdf8;
+  --color-brand-primary-hover: #0ea5e9;
+  --color-brand-primary-active: #0284c7;
+}
+
+[data-theme='stealth'] {
+  --color-app-bg: #05070a;
+  --color-panel-bg: rgba(13, 17, 23, 0.7);
+  --color-elevated-bg: rgba(33, 38, 45, 0.8);
+  --color-hover-bg: rgba(48, 54, 61, 0.9);
+  --color-border-subtle: rgba(48, 54, 61, 0.3);
+  --color-brand-primary: #6366f1;
+  /* Indigo accent for Stealth */
+}
+
+[data-theme='light'] {
+  --color-app-bg: #f8f9fa;
+  --color-panel-bg: #ffffff;
+  --color-elevated-bg: #f1f3f5;
+  --color-hover-bg: #e9ecef;
+  --color-border-subtle: rgba(0, 0, 0, 0.1);
+  --color-text-primary: #1a1a2e;
+  --color-text-secondary: #495057;
+  --color-text-tertiary: #868e96;
+  --color-text-annotation: #adb5bd;
+  --color-industry-label: #495057;
+  --color-industry-value: #1a1a2e;
+  --color-industry-unit: #6c757d;
+}
+
+[data-theme='light'] body {
+  background-image:
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.05) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(168, 85, 247, 0.03) 0px, transparent 50%);
+}
+
+[data-theme='light'] .glass-card {
+  background: var(--color-panel-bg);
+  box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='light'] .industry-card {
+  background: var(--color-panel-bg);
+  box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.08);
+}
+
+/* Phase-specific accent colors */
+.phase-exploration {
+  --phase-accent: #d4a017;
+  --phase-accent-text: #d4a017;
+  --phase-accent-bg: rgba(212, 160, 23, 0.15);
+  --phase-accent-border: rgba(212, 160, 23, 0.4);
+}
+
+.phase-appraisal {
+  --phase-accent: #10b981;
+  --phase-accent-text: #10b981;
+  --phase-accent-bg: rgba(16, 185, 129, 0.15);
+  --phase-accent-border: rgba(16, 185, 129, 0.4);
+}
+
+.phase-reservoir {
+  --phase-accent: #7c3aed;
+  --phase-accent-text: #7c3aed;
+  --phase-accent-bg: rgba(124, 58, 237, 0.15);
+  --phase-accent-border: rgba(124, 58, 237, 0.4);
+}
+
+.phase-reserves {
+  --phase-accent: #a855f7;
+  --phase-accent-text: #a855f7;
+  --phase-accent-bg: rgba(168, 85, 247, 0.15);
+  --phase-accent-border: rgba(168, 85, 247, 0.4);
+}
+
+.phase-drilling {
+  --phase-accent: #f97316;
+  --phase-accent-text: #f97316;
+  --phase-accent-bg: rgba(249, 115, 22, 0.15);
+  --phase-accent-border: rgba(249, 115, 22, 0.4);
+}
+
+.phase-development {
+  --phase-accent: #14b8a6;
+  --phase-accent-text: #14b8a6;
+  --phase-accent-bg: rgba(20, 184, 166, 0.15);
+  --phase-accent-border: rgba(20, 184, 166, 0.4);
+}
+
+.phase-production {
+  --phase-accent: #22c55e;
+  --phase-accent-text: #22c55e;
+  --phase-accent-bg: rgba(34, 197, 94, 0.15);
+  --phase-accent-border: rgba(34, 197, 94, 0.4);
+}
+
+.phase-midstream {
+  --phase-accent: #64748b;
+  --phase-accent-text: #94a3b8;
+  --phase-accent-bg: rgba(100, 116, 139, 0.15);
+  --phase-accent-border: rgba(100, 116, 139, 0.4);
+}
+
+.phase-refining_adv {
+  --phase-accent: #4f46e5;
+  --phase-accent-text: #6366f1;
+  --phase-accent-bg: rgba(79, 70, 229, 0.15);
+  --phase-accent-border: rgba(79, 70, 229, 0.4);
+}
+
+.phase-distribution {
+  --phase-accent: #06b6d4;
+  --phase-accent-text: #06b6d4;
+  --phase-accent-bg: rgba(6, 182, 212, 0.15);
+  --phase-accent-border: rgba(6, 182, 212, 0.4);
+}
+
+.phase-retail {
+  --phase-accent: #f43f5e;
+  --phase-accent-text: #f43f5e;
+  --phase-accent-bg: rgba(244, 63, 94, 0.15);
+  --phase-accent-border: rgba(244, 63, 94, 0.4);
+}
+
+.phase-unconventional {
+  --phase-accent: #8b5cf6;
+  --phase-accent-text: #8b5cf6;
+  --phase-accent-bg: rgba(139, 92, 246, 0.15);
+  --phase-accent-border: rgba(139, 92, 246, 0.4);
+}
+
+.phase-analytics {
+  --phase-accent: #0ea5e9;
+  --phase-accent-text: #0ea5e9;
+  --phase-accent-bg: rgba(14, 165, 233, 0.15);
+  --phase-accent-border: rgba(14, 165, 233, 0.4);
+}
+
+.phase-asset_management {
+  --phase-accent: #3b82f6;
+  --phase-accent-text: #3b82f6;
+  --phase-accent-bg: rgba(59, 130, 246, 0.15);
+  --phase-accent-border: rgba(59, 130, 246, 0.4);
+}
+
+.phase-leasing {
+  --phase-accent: #84cc16;
+  --phase-accent-text: #84cc16;
+  --phase-accent-bg: rgba(132, 204, 22, 0.15);
+  --phase-accent-border: rgba(132, 204, 22, 0.4);
+}
+
+.phase-economics {
+  --phase-accent: #eab308;
+  --phase-accent-text: #eab308;
+  --phase-accent-bg: rgba(234, 179, 8, 0.15);
+  --phase-accent-border: rgba(234, 179, 8, 0.4);
+}
+
+.phase-ccus {
+  --phase-accent: #059669;
+  --phase-accent-text: #059669;
+  --phase-accent-bg: rgba(5, 150, 105, 0.15);
+  --phase-accent-border: rgba(5, 150, 105, 0.4);
+}
+
+/* Phase-specific active sidebar item */
+.sidebar-item-active {
+  color: var(--phase-accent-text);
+  border-left: 2px solid var(--phase-accent);
+}
+
+.sidebar-item-active .sidebar-icon {
+  color: var(--phase-accent-text);
+}
+
+/* Phase-specific nav tab */
+.nav-tab-active {
+  color: var(--phase-accent-text) !important;
+  border-bottom-color: var(--phase-accent) !important;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-app-bg);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.625;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.15) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+}
+
+/* Glassmorphism primitives */
+.glass-card {
+  background: var(--color-panel-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.industry-card {
+  background: var(--color-panel-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border-radius: 24px;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-border-subtle);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-primary);
+}
+
+.data-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: -0.02em;
+}
+
+.unit-label {
+  color: var(--color-text-tertiary);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.formula-ref {
+  font-size: 9px;
+  color: var(--color-brand-primary);
+  opacity: 0.6;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* Animations */
+@keyframes pulse-slow {
+
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Selection */
+::selection {
+  background: var(--color-brand-primary);
+  color: white;
+}

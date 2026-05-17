@@ -1,0 +1,6 @@
+"const CompletionTypeVisualizer = ({ type }: { type: string }) => {\
+  return (\
+    <svg viewBox=\"0 0 100 160\" className=\"w-full h-full\">\
+      <rect x=\"0\" y=\"0\" width=\"100\" height=\"160\" fill=\"#14b8a6\" fillOpacity=\"0.05\" />\
+      <path d
+<truncated 17638 bytes>

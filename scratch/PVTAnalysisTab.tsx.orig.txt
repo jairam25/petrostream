@@ -1,0 +1,7 @@
+"function OilVolume3D({ bo, pressure }: { bo: number, pressure: number }) {\
+  return (\
+    <svg viewBox=\"0 0 500 300\" className=\"w-full h-full max-w-[500px]\">\
+      <g transform=\"translate(150, 50)\">\
+        {/* PVT Cell */}\
+        <rect x=\"0\
+<truncated 5499 bytes>

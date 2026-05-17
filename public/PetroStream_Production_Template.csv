@@ -1,0 +1,2 @@
+API_Number,Well_Name,Operator,County,Date,Formation,Oil_Prod_BBL,Gas_Prod_MCF,Water_Prod_BBL,BHP_PSI,GOR,Choke_Size
+42-000-00000,TEMPLATE_WELL,ASTRA_CORE,REEVES,2024-01-01,Wolfcamp,1000.0,5000.0,200.0,3000,5000,32

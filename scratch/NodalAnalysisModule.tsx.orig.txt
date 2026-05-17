@@ -1,0 +1,5 @@
+"function NodalSystem3D({ result, pr, mode }: { result: any, pr: number, mode: string }) {\
+  const maxQ = Math.max(...result.iprPts.map((d: any) => d.q), ...result.vlpPts.map((d: any) => d.q), 100);\
+\
+  const renderIPR = (color = \"#3b82f6\", dash = \"0\
+<truncated 7523 bytes>

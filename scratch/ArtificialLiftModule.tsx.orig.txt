@@ -1,0 +1,6 @@
+"function LiftSimulator3D({ method, intensity }: { method: string, intensity: number }) {\
+  return (\
+    <svg viewBox=\"0 0 500 400\" className=\"w-full h-full max-w-[600px]\">\
+       <g transform=\"translate(250, 200)\">\
+          {method === '5A' && 
+<truncated 4951 bytes>
