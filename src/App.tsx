@@ -999,7 +999,7 @@ export default function App() {
             <SidebarItem stage={LifecycleStage.DISTRIBUTION} icon={Network} label="Dist" active={activeStage === LifecycleStage.DISTRIBUTION} onClick={() => setActiveStage(LifecycleStage.DISTRIBUTION)} />
 
             <div className="mt-auto flex flex-col items-center gap-6 pb-4">
-              <DataFlowIndicator activeStage={activeStage} />
+              <DataFlowIndicator activeStage={activeStage} onNavigateStage={setActiveStage} />
               <button onClick={() => setActiveStage(LifecycleStage.LIBRARY)} className={cn("text-slate-600 hover:text-white transition-colors", activeStage === LifecycleStage.LIBRARY && "text-cyan-400")}>
                 <BookOpen size={24} />
               </button>
