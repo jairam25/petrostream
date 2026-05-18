@@ -436,6 +436,7 @@ export default function App() {
   const [analyticsSubTab, setAnalyticsSubTab] = useState<'cleaning' | 'statistics' | 'automated-dca' | 'type-curves' | 'machinelearning' | 'realtime' | 'reservoir-surveillance' | 'digital-twin' | 'reporting' | 'references'>('cleaning');
   const [project, setProject] = useState<Project>(MOCK_PROJECTS[0]);
   const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Theme toggle with localStorage persistence
   const [lightTheme, setLightTheme] = useState(() => {
@@ -1005,9 +1006,45 @@ export default function App() {
               <button onClick={() => setActiveStage(LifecycleStage.LIBRARY)} className={cn("text-slate-600 hover:text-white transition-colors", activeStage === LifecycleStage.LIBRARY && "text-cyan-400")}>
                 <BookOpen size={24} />
               </button>
-              <button className="text-slate-600 hover:text-white transition-colors">
-                <Settings size={24} />
-              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  className={cn("text-slate-600 hover:text-white transition-colors", showSettings && "text-brand-primary")}
+                >
+                  <Settings size={24} />
+                </button>
+                {showSettings && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowSettings(false)} />
+                    <div className="absolute left-full bottom-0 ml-3 w-56 bg-panel-bg border border-border-subtle rounded-xl shadow-2xl z-50 overflow-hidden">
+                      <div className="p-4 border-b border-border-subtle">
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-text-secondary mb-3">Settings</h3>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-[11px] text-text-secondary">Theme</span>
+                          <button
+                            onClick={() => setLightTheme(!lightTheme)}
+                            className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider border border-border-subtle rounded transition-colors hover:bg-hover-bg"
+                          >
+                            {lightTheme ? 'Light' : 'Dark'}
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] text-text-secondary">Units</span>
+                          <UnitSystemToggle />
+                        </div>
+                      </div>
+                      <div className="p-3">
+                        <button
+                          onClick={() => setShowSettings(false)}
+                          className="w-full py-1.5 text-[10px] font-semibold uppercase tracking-wider text-text-tertiary hover:text-text-primary transition-colors"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </aside>
 
