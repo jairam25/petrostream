@@ -1003,13 +1003,13 @@ export default function App() {
 
             <div className="mt-auto flex flex-col items-center gap-6 pb-4">
               <DataFlowIndicator activeStage={activeStage} compact onNavigateStage={setActiveStage} />
-              <button onClick={() => setActiveStage(LifecycleStage.LIBRARY)} className={cn("text-slate-600 hover:text-white transition-colors", activeStage === LifecycleStage.LIBRARY && "text-cyan-400")}>
+              <button onClick={() => setActiveStage(LifecycleStage.LIBRARY)} className={cn("text-text-secondary hover:text-white transition-colors", activeStage === LifecycleStage.LIBRARY && "text-cyan-400")}>
                 <BookOpen size={24} />
               </button>
               <div className="relative">
                 <button
                   onClick={() => setShowSettings(!showSettings)}
-                  className={cn("text-slate-600 hover:text-white transition-colors", showSettings && "text-brand-primary")}
+                  className={cn("text-text-secondary hover:text-white transition-colors", showSettings && "text-brand-primary")}
                 >
                   <Settings size={24} />
                 </button>
