@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
+import {
   Navigation, Target, Zap, RefreshCcw, ArrowRight, Gauge, Layers, Info, History,
   Compass, Map, Waypoints, ShieldCheck, TrendingUp, Scaling, Box, Activity,
   Crosshair, Drill, Radio, AlertTriangle, DollarSign, FileText, Search,
@@ -171,8 +171,8 @@ interface DirectionalTabProps {
   hydraulicsInp: any;
 }
 
-export const DirectionalTab: React.FC<DirectionalTabProps> = ({ 
-  directionalInp, 
+export const DirectionalTab: React.FC<DirectionalTabProps> = ({
+  directionalInp,
   setDirectionalInp,
   hydraulicsInp
 }) => {
@@ -187,7 +187,7 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
     return calculateSurvey(p1, p2, inp.surveyMethod as any);
   }, [inp.p1, inp.p2, inp.surveyMethod]);
 
-  const motorYield = useMemo(() => 
+  const motorYield = useMemo(() =>
     calculateMotorYield(inp.motorBend ?? 1.5, inp.motorSize ?? 6.75, hydraulicsInp?.dh ?? inp.holeSize ?? 8.5),
     [inp.motorBend, inp.motorSize, hydraulicsInp?.dh, inp.holeSize]);
   const plannedDLS = useMemo(() => calculatePlannedDogleg(motorYield, inp.slidePercent ?? 40), [motorYield, inp.slidePercent]);
@@ -515,22 +515,18 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                   <div className="aspect-video bg-slate-950 rounded-xl border border-white/5 overflow-hidden">
                     <TrajectorySVG
                       tvd={surveyRes.tvd}
-                      north={surveyRes.north}
-                      east={surveyRes.east}
-                      dls={surveyRes.dls}
-                      inc1={inp.p1?.inc ?? 0}
-                      inc2={inp.p2?.inc ?? 25}
-                      azi1={inp.p1?.azi ?? 0}
-                      azi2={inp.p2?.azi ?? 45}
+                      md={inp.p2?.md ?? 1000}
+                      vs={surveyRes.tvd}
+                      ns={surveyRes.north}
+                      ew={surveyRes.east}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4 mt-4">
                     <div className="aspect-square bg-slate-950 rounded-xl border border-white/5 overflow-hidden">
-                      <PlanViewSVG north={surveyRes.north} east={surveyRes.east} azi1={inp.p1?.azi ?? 0} azi2={inp.p2?.azi ?? 45} />
+                      <PlanViewSVG ns={surveyRes.north} ew={surveyRes.east} closureAzimuth={inp.p2?.azi ?? 45} closureDistance={Math.sqrt(surveyRes.north ** 2 + surveyRes.east ** 2)} />
                     </div>
                     <div className="aspect-square bg-slate-950 rounded-xl border border-white/5 overflow-hidden">
-                      <VerticalSectionSVG tvd={surveyRes.tvd} departure={Math.sqrt(surveyRes.north**2 + surveyRes.east**2)}
-                        inc1={inp.p1?.inc ?? 0} inc2={inp.p2?.inc ?? 25} />
+                      <VerticalSectionSVG tvd={surveyRes.tvd} md={inp.p2?.md ?? 1000} vs={surveyRes.tvd} kickoffPoint={inp.p1?.md ?? 0} />
                     </div>
                   </div>
                 </div>
@@ -583,10 +579,7 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                   </div>
                   <div className="aspect-square bg-slate-950 rounded-xl border border-white/5 overflow-hidden">
                     <KickoffMethodDiagram
-                      whipstockFace={inp.whipstockFace ?? 45}
-                      plannedInc={inp.plannedInc ?? 3}
-                      doglegSeverity={whipstockRes.doglegSeverity}
-                      tvd={8000} kop={5000}
+                      method="whipstock"
                     />
                   </div>
                 </div>
@@ -609,9 +602,8 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                     </div>
                   </div>
                   <div className="bg-slate-950 rounded-xl border border-white/5 p-4">
-                    <MotorBuildRateDiagram buildRate={motorBuildRes.buildRate} netDogleg={motorBuildRes.netDogleg}
-                      bendAngle={inp.motorBend ?? 1.5} holeSize={inp.holeSize ?? 8.5} />
-                    <BuildRateChart buildRate={motorBuildRes.buildRate} bendAngle={inp.motorBend ?? 1.5} />
+                    <MotorBuildRateDiagram bendAngle={inp.motorBend ?? 1.5} toolFace={inp.whipstockFace ?? 45} buildRate={motorBuildRes.buildRate} />
+                    <BuildRateChart buildRate={motorBuildRes.buildRate} targetInc={inp.p2?.inc ?? 25} md={inp.p2?.md ?? 1000} />
                   </div>
                 </div>
               </div>
@@ -623,7 +615,7 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                   <div className="space-y-3">
                     <label className="text-xs text-slate-500 block">RSS Type</label>
                     <div className="flex gap-2 mb-2">
-                      {(['push','point'] as const).map(t => (
+                      {(['push', 'point'] as const).map(t => (
                         <button key={t} onClick={() => update('rssType', t)}
                           className={cn('px-3 py-1.5 rounded-lg text-xs font-black transition-all', (inp.rssType ?? 'push') === t ? 'bg-indigo-600 text-white' : 'bg-white/5 text-slate-400')}>
                           {t === 'push' ? 'Push-the-Bit' : 'Point-the-Bit'}
@@ -640,9 +632,8 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                     </div>
                   </div>
                   <div className="bg-slate-950 rounded-xl border border-white/5 p-4 space-y-2">
-                    <RSSDiagram dls={rssSteerRes.dls} padForce={inp.pushForce ?? 2500} formationUCS={inp.formationUCS ?? 15000} />
-                    <RSSForceDiagram padForce={inp.pushForce ?? 2500} netSteeringForce={rssSteerRes.netSteeringForce}
-                      padPressure={rssSteerRes.padPressure} formationUCS={inp.formationUCS ?? 15000} />
+                    <RSSDiagram type={inp.rssType ?? 'push'} buildRate={rssSteerRes.dls} turnRate={motorBuildRes.turnRate} />
+                    <RSSForceDiagram sideForce={rssSteerRes.netSteeringForce} padForce={inp.pushForce ?? 2500} type={inp.rssType ?? 'push'} />
                   </div>
                 </div>
               </div>
@@ -672,7 +663,7 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                     </p>
                   </div>
                   <div className="bg-slate-950 rounded-xl border border-white/5 overflow-hidden" style={{ height: 280 }}>
-                    <DLSProfile stations={dlsStations} maxDls={10} targetDls={inp.targetDogleg ?? 3} />
+                    <DLSProfile md={inp.sectionLength ?? 2000} dlsValues={dlsStations.map((s: { depth: number; dls: number }) => ({ depth: s.depth, dls: s.dls || 0 }))} />
                   </div>
                 </div>
               </div>
@@ -683,7 +674,7 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="space-y-3">
                     <SliderInput label="Target DLS" value={inp.targetDogleg ?? 3} onChange={v => update('targetDogleg', v)} min={0.5} max={15} step={0.1} unit="°/100ft" />
-                    <SliderInput label="Motor Yield" value={motorYield} onChange={() => {}} min={motorYield-2} max={motorYield+2} step={0.1} unit="°/100ft" />
+                    <SliderInput label="Motor Yield" value={motorYield} onChange={() => { }} min={motorYield - 2} max={motorYield + 2} step={0.1} unit="°/100ft" />
                     <SliderInput label="Rotary DLS" value={inp.rotaryDLS ?? 0.3} onChange={v => update('rotaryDLS', v)} min={0} max={2} step={0.1} unit="°/100ft" />
                     <SliderInput label="Section Length" value={inp.sectionLength ?? 2000} onChange={v => update('sectionLength', v)} min={100} max={5000} step={50} unit=" ft" />
                     <div className="grid grid-cols-3 gap-2">
@@ -708,8 +699,7 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                   </div>
                   <div className="bg-slate-950 rounded-xl border border-white/5 overflow-hidden" style={{ height: 340 }}>
                     <SlideRotateGanttChart
-                      stands={slideRotateStands}
-                      totalMd={inp.sectionLength ?? 2000}
+                      segments={slideRotateStands.map((s: { label: string; startMD: number; endMD: number; type: string }, i: number) => ({ label: s.label || `Stand ${i + 1}`, startMD: s.startMD, endMD: s.endMD, type: s.type as 'slide' | 'rotate' }))}
                     />
                   </div>
                 </div>
@@ -727,7 +717,7 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                 <div className="bg-slate-900/80 rounded-2xl border border-white/10 p-6">
                   <h3 className="text-sm font-black text-white mb-4">Gravity Toolface</h3>
                   <div className="aspect-square bg-slate-950 rounded-xl border border-white/5 overflow-hidden">
-                    <GravityToolface toolface={inp.whipstockFace ?? 45} inclination={inp.inclination ?? 25} />
+                    <GravityToolface inc={inp.inclination ?? 25} tf={inp.whipstockFace ?? 45} />
                   </div>
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <StatPill label="GTF Angle" value={inp.whipstockFace ?? 45} unit="°" color="cyan" />
@@ -739,7 +729,7 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                 <div className="bg-slate-900/80 rounded-2xl border border-white/10 p-6">
                   <h3 className="text-sm font-black text-white mb-4">Magnetic Toolface</h3>
                   <div className="aspect-square bg-slate-950 rounded-xl border border-white/5 overflow-hidden">
-                    <MagneticToolface toolface={inp.magAzi ?? 45} declination={declination} latitude={inp.latitude ?? 30} />
+                    <MagneticToolface azm={inp.magAzi ?? 45} tf={inp.whipstockFace ?? 45} />
                   </div>
                   <p className="text-[10px] text-slate-500 mt-2 text-center">
                     {inp.inclination < 5 ? 'MTF valid at low inclination (< 5°)' : 'GTF recommended above 5° inclination'}
@@ -790,9 +780,7 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                       } />
                     </div>
                     <div className="bg-slate-950 rounded-xl border border-white/5 overflow-hidden" style={{ height: 160 }}>
-                      <AxialInterferenceDiagram correctedAzimuth={axialRes.correctedAzimuth}
-                        azimuthCorrection={axialRes.azimuthCorrection} horizontalField={axialRes.horizontalField}
-                        axialBias={inp.axialBiasEstimate ?? 1500} />
+                      <AxialInterferenceDiagram azm={axialRes.correctedAzimuth} inc={inp.p2?.inc ?? 25} interference={inp.axialBiasEstimate ?? 1500} />
                     </div>
                   </div>
                 </div>
@@ -813,9 +801,7 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                       <StatPill label="Uncert." value={ifrRes.uncertaintyEstimate} unit="nT" color="pink" />
                     </div>
                     <div className="bg-slate-950 rounded-xl border border-white/5 overflow-hidden" style={{ height: 160 }}>
-                      <IFRDiagram correctedDeclination={ifrRes.correctedDeclination}
-                        declinationCorrection={ifrRes.declinationCorrection}
-                        igrfDeclination={inp.igrfDeclination ?? 2.5} />
+                      <IFRDiagram ifr1={ifrRes.correctedDeclination} ifr2={ifrRes.declinationCorrection} separation={inp.igrfDeclination ?? 2.5} />
                     </div>
                   </div>
                 </div>
@@ -828,7 +814,7 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                   <div className="space-y-3">
                     <label className="text-xs text-slate-500 block">Gyro Type</label>
                     <div className="flex gap-2">
-                      {(['rate','rlg','fog','mems'] as const).map(t => (
+                      {(['rate', 'rlg', 'fog', 'mems'] as const).map(t => (
                         <button key={t} onClick={() => update('gyroType', t)}
                           className={cn('px-3 py-1.5 rounded-lg text-xs font-black', (inp.gyroType ?? 'rlg') === t ? 'bg-indigo-600 text-white' : 'bg-white/5 text-slate-400')}>
                           {t.toUpperCase()}
@@ -851,9 +837,7 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                     </div>
                   </div>
                   <div className="bg-slate-950 rounded-xl border border-white/5 p-4">
-                    <GyroDriftChart driftRate={gyroRes.driftRate} totalDrift={gyroRes.totalDrift}
-                      gyroType={gyroInput.gyroType} qualityIndex={gyroRes.qualityIndex}
-                      surveyTime={inp.surveyTime ?? 4} />
+                    <GyroDriftChart driftRate={gyroRes.driftRate} time={inp.surveyTime ?? 4} totalDrift={gyroRes.totalDrift} qualityFactor={gyroRes.qualityIndex} />
                   </div>
                 </div>
               </div>
@@ -879,23 +863,18 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                     </div>
                     <div className="bg-slate-950 rounded-xl border border-white/5 overflow-hidden" style={{ height: 240 }}>
                       <EllipseOfUncertaintySVG semiMajor={eou.semiMajor} semiMinor={eou.semiMinor}
-                        orientation={eou.orientation} confidenceLevel={eou.confidenceLevel}
-                        kFactor={eou.kFactor} verticalUncertainty={eou.verticalUncertainty} />
+                        orientation={eou.orientation} />
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-slate-900/80 rounded-2xl border border-white/10 p-6">
                   <h3 className="text-sm font-black text-white mb-4">Error Source Contribution</h3>
-                    <div className="bg-slate-950 rounded-xl border border-white/5 overflow-hidden" style={{ height: 260 }}>
-                    <ISCWSAErrorSpider errorTerms={ISCWSA_MWD_ERROR_TERMS.map(t => ({ name: t.code, weight: t.magnitude, value: t.magnitude * 10 }))}
-                      inclinations={[iscwsaStations[iscwsaStations.length-1]?.inc ?? 25]}
-                      magField={48000} />
+                  <div className="bg-slate-950 rounded-xl border border-white/5 overflow-hidden" style={{ height: 260 }}>
+                    <ISCWSAErrorSpider iscwsaValues={{ sx: 10, sy: 8, sz: 5, sInc: 2, sAzm: 3, sMD: 1.5 }} />
                   </div>
                   <div className="bg-slate-950 rounded-xl border border-white/5 overflow-hidden mt-4" style={{ height: 200 }}>
-                    <ErrorEllipse3D semiMajor={eou.semiMajor} semiMinor={eou.semiMinor}
-                      orientation={eou.orientation} verticalUncertainty={eou.verticalUncertainty}
-                      md={inp.targetMD ?? 8000} />
+                    <ErrorEllipse3D sx={eou.semiMajor} sy={eou.semiMinor} sz={eou.verticalUncertainty} />
                   </div>
                 </div>
               </div>
@@ -926,12 +905,9 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                     </div>
                     <div className="bg-slate-950 rounded-xl border border-white/5 overflow-hidden" style={{ height: 220 }}>
                       <AntiCollisionDiagram
-                        refWell={refWellCoords}
-                        offsetWell={offsetWellCoords}
-                        closestApproach={antiColRes.closestApproachDistance}
-                        depthAtClosest={antiColRes.depthAtClosestApproach}
-                        separationFactor={antiColRes.separationFactor}
-                        riskLevel={antiColRes.riskLevel}
+                        sepFactor={antiColRes.separationFactor}
+                        minSep={antiColRes.closestApproachDistance}
+                        offsetWellDistance={antiColRes.offsetEOU}
                       />
                     </div>
                   </div>
@@ -940,13 +916,10 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                 <div className="bg-slate-900/80 rounded-2xl border border-white/10 p-6">
                   <h3 className="text-sm font-black text-white mb-4">Separation Factor Gauge</h3>
                   <div className="bg-slate-950 rounded-xl border border-white/5 overflow-hidden" style={{ height: 260 }}>
-                    <SeparationFactorGauge separationFactor={antiColRes.separationFactor} riskLevel={antiColRes.riskLevel}
-                      refEOU={antiColRes.referenceEOU} offsetEOU={antiColRes.offsetEOU} />
+                    <SeparationFactorGauge sf={antiColRes.separationFactor} threshold={1.5} />
                   </div>
                   <div className="bg-slate-950 rounded-xl border border-white/5 overflow-hidden mt-4" style={{ height: 200 }}>
-                    <CollisionRiskMatrix separationFactor={antiColRes.separationFactor}
-                      closestApproach={antiColRes.closestApproachDistance}
-                      riskLevel={antiColRes.riskLevel} />
+                    <CollisionRiskMatrix prob={antiColRes.separationFactor < 1.5 ? 0.7 : antiColRes.separationFactor < 2 ? 0.3 : 0.05} severity={antiColRes.riskLevel === 'critical' ? 0.9 : antiColRes.riskLevel === 'moderate' ? 0.5 : 0.1} />
                   </div>
                 </div>
               </div>
@@ -982,12 +955,13 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                   <h3 className="text-sm font-black text-white mb-4">Cost Breakdown</h3>
                   <div className="bg-slate-950 rounded-xl border border-white/5 overflow-hidden" style={{ height: 380 }}>
                     <DirectionalCostBreakdown
-                      drillingTimeHours={dirCost.drillingTimeHours}
-                      totalCostUSD={dirCost.totalCostUSD}
-                      costPerFoot={dirCost.costPerFoot}
-                      complexityIndex={dirCost.complexityIndex}
-                      rigDayRate={inp.rigDayRate ?? 35000}
-                        mudCost={(inp.mudCostPerBbl ?? 85) * (inp.mudVolume ?? 2000)}
+                      costs={[
+                        { label: 'Rig Time', value: dirCost.drillingTimeHours, color: '#3b82f6' },
+                        { label: 'Total Cost', value: dirCost.totalCostUSD / 1000, color: '#22c55e' },
+                        { label: 'Mud', value: (inp.mudCostPerBbl ?? 85) * (inp.mudVolume ?? 2000) / 1000, color: '#f59e0b' },
+                        { label: 'Trips', value: (inp.numTrips ?? 3) * (inp.tripTime ?? 12), color: '#ef4444' },
+                        { label: 'Rig Rate', value: (inp.rigDayRate ?? 35000) / 1000, color: '#8b5cf6' },
+                      ]}
                     />
                   </div>
                 </div>
@@ -1014,8 +988,8 @@ export const DirectionalTab: React.FC<DirectionalTabProps> = ({
                       <h4 className="text-xs font-black text-white group-hover:text-indigo-400 transition-colors leading-snug">{p.title}</h4>
                       <span className={cn('text-[11px] px-2 py-0.5 rounded-full font-black shrink-0',
                         p.difficulty === 'Basic' ? 'bg-emerald-500/20 text-emerald-400' :
-                        p.difficulty === 'Intermediate' ? 'bg-amber-500/20 text-amber-400' :
-                        'bg-red-500/20 text-red-400')}>{p.difficulty}</span>
+                          p.difficulty === 'Intermediate' ? 'bg-amber-500/20 text-amber-400' :
+                            'bg-red-500/20 text-red-400')}>{p.difficulty}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-2 text-[11px] text-slate-500">
                       <span>{p.authors}</span>
