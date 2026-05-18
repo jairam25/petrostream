@@ -933,16 +933,17 @@ export default function App() {
       let geminiResponded = false;
       try {
         const geminiKey = import.meta.env.VITE_GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
-        if (geminiKey && geminiKey !== 'MY_GEMINI_API_KEY') {
+        if (geminiKey && geminiKey !== 'MY_GEMINI_API_KEY' && geminiKey.length > 5) {
           const ai = new GoogleGenAI({ apiKey: geminiKey });
           const prompt = `You are an expert Petroleum Engineering Advisor. The user is currently in the ${activeStage} stage of an oil and gas project. Answer the following technical query concisely with citations to SPE papers if applicable: ${query}`;
           const result = await ai.models.generateContentStream({
             model: 'gemini-2.5-flash',
-            contents: prompt
+            contents: [{ role: 'user', parts: [{ text: prompt }] }]
           });
           let aiText = '';
           for await (const chunk of result) {
-            aiText += chunk.text;
+            const text = chunk?.candidates?.[0]?.content?.parts?.[0]?.text || chunk?.text || '';
+            aiText += text;
           }
           if (aiText) {
             setAiResponse(aiText);
@@ -954,7 +955,7 @@ export default function App() {
       }
 
       if (!geminiResponded) {
-        setAiResponse('*No results found in the technical knowledge base. Try a different query (e.g., "Archie equation", "BHA", "Vogel IPR", "Gardner relation").*');
+        setAiResponse('*No results found in the technical knowledge base. Try a different query (e.g., "Archie equation", "BHA", "Vogel IPR", "Gardner relation").*\n\n*Tip: Set `VITE_GEMINI_API_KEY` in a `.env` file to enable AI-powered answers via Gemini.*');
       }
       setAiLoading(false);
     }
