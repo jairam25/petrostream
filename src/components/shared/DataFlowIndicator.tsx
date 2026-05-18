@@ -9,8 +9,8 @@
  * Badges are clickable — they navigate to the corresponding stage
  * via the onNavigateStage callback.
  */
-import React, { useMemo } from 'react';
-import { ArrowRight, GitCompareArrows } from 'lucide-react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
+import { ArrowRight, GitCompareArrows, X } from 'lucide-react';
 import { useSimulationStore } from '../../store/simulationStore';
 import { connectionLabel, STAGE_TO_LAYER } from '../../store/connectionUtils';
 import type { ConnectionKey, ConnectionStatus } from '../../store/types';
@@ -51,6 +51,25 @@ export default function DataFlowIndicator({ activeStage, compact = false, onNavi
     const connectionStatus = useSimulationStore(s => s.connectionStatus);
     const stageKey = activeStage.toUpperCase();
     const layer = STAGE_TO_LAYER[stageKey];
+    const [popupOpen, setPopupOpen] = useState(false);
+    const popupRef = useRef<HTMLDivElement>(null);
+
+    // Close popup on outside click
+    useEffect(() => {
+        if (!popupOpen) return;
+        const handler = (e: MouseEvent) => {
+            if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
+                setPopupOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [popupOpen]);
+
+    // Close popup when stage changes
+    useEffect(() => {
+        setPopupOpen(false);
+    }, [activeStage]);
 
     const downstream = useMemo(() => {
         if (!layer) return [];
@@ -73,24 +92,6 @@ export default function DataFlowIndicator({ activeStage, compact = false, onNavi
         const name = dir === 'in' ? from : to;
         return NAME_TO_STAGE[name] ?? null;
     };
-
-    if (!layer && upstream.length === 0 && downstream.length === 0) {
-        if (compact) {
-            return (
-                <div className="flex flex-col items-center gap-1 cursor-pointer group" title="Data Flow — No connections for this stage">
-                    <div className="w-10 h-10 rounded-md flex items-center justify-center bg-cyan-500/10 border border-cyan-500/20 group-hover:border-cyan-400/40 group-hover:bg-cyan-500/20 transition-all">
-                        <GitCompareArrows size={18} className="text-cyan-400 animate-pulse" />
-                    </div>
-                </div>
-            );
-        }
-        return (
-            <div className="flex items-center gap-2 text-xs text-cyan-400/70 px-2 py-1">
-                <GitCompareArrows size={14} className="text-cyan-400" />
-                No data connections for this stage.
-            </div>
-        );
-    }
 
     const ConnectionBadge: React.FC<{
         keyName: ConnectionKey;
@@ -133,7 +134,10 @@ export default function DataFlowIndicator({ activeStage, compact = false, onNavi
                 <button
                     type="button"
                     className="p-0 m-0 bg-transparent border-none"
-                    onClick={() => onNavigate!(targetStage!)}
+                    onClick={() => {
+                        onNavigate!(targetStage!);
+                        setPopupOpen(false);
+                    }}
                     title={`Navigate to ${targetStage}`}
                 >
                     {badge}
@@ -143,38 +147,116 @@ export default function DataFlowIndicator({ activeStage, compact = false, onNavi
         return badge;
     };
 
+    // ─── Compact mode: clickable icon that opens a floating popup ───
     if (compact) {
         const greenCount = [...upstream, ...downstream].filter(c => c.status === 'green').length;
         const yellowCount = [...upstream, ...downstream].filter(c => c.status === 'yellow').length;
         const redCount = [...upstream, ...downstream].filter(c => c.status === 'red').length;
         const total = greenCount + yellowCount + redCount;
-        if (total === 0) {
-            return (
-                <div className="flex flex-col items-center gap-1 cursor-pointer group" title="Data Flow — No active connections">
-                    <div className="w-10 h-10 rounded-md flex items-center justify-center bg-cyan-500/10 border border-cyan-500/20 group-hover:border-cyan-400/40 group-hover:bg-cyan-500/20 transition-all">
-                        <GitCompareArrows size={18} className="text-cyan-400 animate-pulse" />
-                    </div>
-                </div>
-            );
-        }
+        const hasConnections = upstream.length > 0 || downstream.length > 0;
 
         return (
-            <div className="flex items-center gap-1.5 text-[10px]">
-                {greenCount > 0 && (
-                    <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 bg-green-500" />{greenCount}
-                    </span>
+            <div className="relative" ref={popupRef}>
+                {/* Clickable icon button */}
+                <button
+                    type="button"
+                    onClick={() => setPopupOpen(!popupOpen)}
+                    className="flex flex-col items-center gap-1 group focus:outline-none"
+                    title="Data Flow Connections"
+                >
+                    <div className={`w-10 h-10 rounded-md flex items-center justify-center border transition-all
+                        ${popupOpen
+                            ? 'bg-cyan-500/20 border-cyan-400/50 shadow-lg shadow-cyan-500/20'
+                            : 'bg-cyan-500/10 border-cyan-500/20 group-hover:border-cyan-400/40 group-hover:bg-cyan-500/20'
+                        }`}
+                    >
+                        <GitCompareArrows size={18} className="text-cyan-400" />
+                    </div>
+                    {/* Summary dots below icon */}
+                    {total > 0 && (
+                        <div className="flex items-center gap-1">
+                            {greenCount > 0 && <span className="flex items-center gap-0.5 text-[9px] text-green-400"><span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />{greenCount}</span>}
+                            {yellowCount > 0 && <span className="flex items-center gap-0.5 text-[9px] text-yellow-400"><span className="inline-block w-1.5 h-1.5 rounded-full bg-yellow-500" />{yellowCount}</span>}
+                            {redCount > 0 && <span className="flex items-center gap-0.5 text-[9px] text-red-400"><span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500" />{redCount}</span>}
+                        </div>
+                    )}
+                </button>
+
+                {/* Floating popup panel */}
+                {popupOpen && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl shadow-black/50 z-50 overflow-hidden animate-in fade-in slide-in-from-bottom-2">
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-3 py-2 border-b border-slate-700 bg-slate-800/80">
+                            <div className="flex items-center gap-2">
+                                <GitCompareArrows size={14} className="text-cyan-400" />
+                                <span className="text-[11px] font-semibold uppercase tracking-wider text-cyan-400">Data Flow</span>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setPopupOpen(false)}
+                                className="text-slate-500 hover:text-white transition-colors p-0.5"
+                            >
+                                <X size={12} />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-3 space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                            {!hasConnections && (
+                                <div className="text-[11px] text-slate-400 text-center py-2 italic">
+                                    No connections for this stage.
+                                    <br />
+                                    <span className="text-slate-500">Run simulations to create data links.</span>
+                                </div>
+                            )}
+
+                            {upstream.length > 0 && (
+                                <div className="space-y-1">
+                                    <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">← Upstream</span>
+                                    <div className="flex flex-wrap gap-1">
+                                        {upstream.map(c => (
+                                            <ConnectionBadge key={c.key} keyName={c.key} status={c.status} dir="in" onNavigate={onNavigateStage} />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {downstream.length > 0 && (
+                                <div className="space-y-1">
+                                    <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">→ Downstream</span>
+                                    <div className="flex flex-wrap gap-1">
+                                        {downstream.map(c => (
+                                            <ConnectionBadge key={c.key} keyName={c.key} status={c.status} dir="out" onNavigate={onNavigateStage} />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {hasConnections && upstream.length === 0 && downstream.length === 0 && (
+                                <div className="text-[11px] text-slate-400 text-center py-2 italic">
+                                    No active data links yet.
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Legend */}
+                        <div className="flex items-center justify-center gap-3 px-3 py-1.5 border-t border-slate-700 text-[10px] text-slate-500">
+                            <span className="flex items-center gap-1"><span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />Linked</span>
+                            <span className="flex items-center gap-1"><span className="inline-block w-1.5 h-1.5 rounded-full bg-yellow-500" />Stale</span>
+                            <span className="flex items-center gap-1"><span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500" />No data</span>
+                        </div>
+                    </div>
                 )}
-                {yellowCount > 0 && (
-                    <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 bg-yellow-500" />{yellowCount}
-                    </span>
-                )}
-                {redCount > 0 && (
-                    <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 bg-red-500" />{redCount}
-                    </span>
-                )}
+            </div>
+        );
+    }
+
+    // ─── Full (non-compact) mode ───
+    if (!layer && upstream.length === 0 && downstream.length === 0) {
+        return (
+            <div className="flex items-center gap-2 text-xs text-cyan-400/70 px-2 py-1">
+                <GitCompareArrows size={14} className="text-cyan-400" />
+                No data connections for this stage.
             </div>
         );
     }
