@@ -982,7 +982,7 @@ export default function App() {
           </div>
         </nav>
 
-        <div className="flex grow">
+        <div className="flex grow overflow-hidden">
           {/* Life-cycle Rail */}
           <aside className="w-20 border-r border-border-subtle bg-panel-bg flex flex-col items-center py-8 gap-6 shrink-0 z-20 overflow-y-auto custom-scrollbar">
             <SidebarItem stage={LifecycleStage.EXPLORATION} icon={Compass} label="Expl" active={activeStage === LifecycleStage.EXPLORATION} onClick={() => setActiveStage(LifecycleStage.EXPLORATION)} />
@@ -1016,7 +1016,7 @@ export default function App() {
                 {showSettings && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowSettings(false)} />
-                    <div className="absolute left-full bottom-0 ml-3 w-56 bg-panel-bg border border-border-subtle rounded-xl shadow-2xl z-50 overflow-hidden">
+                    <div className="fixed left-24 bottom-8 w-56 bg-panel-bg border border-border-subtle rounded-xl shadow-2xl z-50 overflow-hidden">
                       <div className="p-4 border-b border-border-subtle">
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-text-secondary mb-3">Settings</h3>
                         <div className="flex items-center justify-between mb-3">
