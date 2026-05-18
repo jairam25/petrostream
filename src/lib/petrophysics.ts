@@ -340,9 +340,9 @@ export function calculateBulkVolumeWater(phi: number, sw: number): number {
 export function calculateVshGR(gr: number, grClean: number, grShale: number, type?: 'larionov_old' | 'larionov_tertiary' | 'steiber' | 'clavier'): number {
   const igr = (gr - grClean) / (grShale - grClean);
   const cleanIgr = Math.max(0, Math.min(1, igr));
-  
+
   if (!type) return cleanIgr;
-  
+
   switch (type) {
     case 'larionov_old': return calculateVshLarionovOlder(cleanIgr);
     case 'larionov_tertiary': return calculateVshLarionovTertiary(cleanIgr);
@@ -414,8 +414,15 @@ export function calculateSimandouxSw(vsh: number, rsh: number, phi: number, rw: 
 
 export function calculateDualWaterSw(phi_t: number, vsh: number, nphi_sh: number, rw: number, rwb: number, rt: number, m: number, n: number): number {
   if (rt <= 0 || phi_t <= 0) return 1;
-  const swb = vsh * nphi_sh / phi_t;
-  const rw_eff = 1 / ((1 - swb) / rw + swb / rwb);
+  // Guard against missing/zero parameters that cause NaN
+  const safeNphiSh = (nphi_sh == null || Number.isNaN(nphi_sh)) ? (vsh > 0 ? 0.35 : 0) : nphi_sh;
+  const safeRwb = (rwb == null || rwb <= 0 || Number.isNaN(rwb)) ? (rw * 4) : rwb; // bound water ~4x formation water resistivity
+  if (rw <= 0) return 1;
+  const swb = (vsh * safeNphiSh) / phi_t;
+  // Clamp swb to [0, 1] to avoid division by zero or negative effective Rw
+  const clampedSwb = Math.max(0, Math.min(1, swb));
+  if (clampedSwb >= 1) return 1; // 100% bound water
+  const rw_eff = 1 / ((1 - clampedSwb) / rw + clampedSwb / safeRwb);
   const sw_t = Math.pow((rw_eff / (Math.pow(phi_t, m) * rt)), 1 / n);
   return Math.max(0, Math.min(1, sw_t));
 }
@@ -428,7 +435,7 @@ export function calculateWaxmanSmitsSw(phi: number, rw: number, rt: number, m: n
   if (rt <= 0 || phi <= 0) return 1;
   // F* is the shaly sand formation factor
   const f_star = 1 / Math.pow(phi, m);
-  
+
   // Numerical approximation for Sw (Newton-Raphson would be better, but we iterate)
   let sw = 0.5;
   for (let i = 0; i < 10; i++) {
@@ -437,7 +444,7 @@ export function calculateWaxmanSmitsSw(phi: number, rw: number, rt: number, m: n
     const diff = rt_calc - rt;
     if (Math.abs(diff) < 0.001) break;
     // Simple update step
-    sw = sw * Math.pow(rt_calc / rt, 1/n);
+    sw = sw * Math.pow(rt_calc / rt, 1 / n);
     sw = Math.max(0.01, Math.min(1, sw));
   }
   return Math.max(0, Math.min(1, sw));
@@ -457,7 +464,7 @@ export function calculateRwFromSP(ssp: number, tempF: number, rmfe: number): num
   const k = 61 + (0.133 * tempF);
   const rmf_we = rmfe / Math.pow(10, -ssp / k);
   // Simplified conversion from Rwe to Rw
-  return rmf_we; 
+  return rmf_we;
 }
 
 export function calculateRwa(rt: number, phi: number, m: number, a: number): number {
@@ -520,23 +527,23 @@ export function calculateWinlandR35(k: number, phi: number): number {
  */
 export function fitPermeabilityTransform(data: { phi: number, k: number }[]) {
   if (data.length < 2) return { a: 0, b: 0, r2: 0 };
-  
+
   const n = data.length;
   const x = data.map(d => d.phi);
   const y = data.map(d => Math.log10(d.k));
-  
+
   const sumX = x.reduce((a, b) => a + b, 0);
   const sumY = y.reduce((a, b) => a + b, 0);
   const sumXY = x.reduce((sum, current, i) => sum + current * y[i], 0);
   const sumX2 = x.reduce((a, b) => a + b * b, 0);
-  
+
   const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
   const intercept = (sumY - slope * sumX) / n;
-  
+
   // k = 10^(intercept + slope * phi) = 10^intercept * 10^(slope * phi)
   const a = Math.pow(10, intercept);
   const b = slope;
-  
+
   // Simple R2 calculation
   const yMean = sumY / n;
   const ssTot = y.reduce((acc, curr) => acc + Math.pow(curr - yMean, 2), 0);
@@ -571,7 +578,7 @@ export interface NetPayResult {
 export function evaluateNetPay(point: LogDataPoint, cutoffs: NetPayCutoffs): NetPayResult {
   const isNetReservoir = point.phi >= cutoffs.minPhi && point.vsh <= cutoffs.maxVsh;
   const isNetPay = isNetReservoir && point.sw <= cutoffs.maxSw && point.k >= cutoffs.minK;
-  
+
   return { isNetPay, isNetReservoir };
 }
 
@@ -595,15 +602,15 @@ export function calculateNetPayStats(data: LogDataPoint[], cutoffs: NetPayCutoff
   };
 
   for (let i = 0; i < data.length - 1; i++) {
-    const dz = Math.abs(data[i+1].depth - data[i].depth);
+    const dz = Math.abs(data[i + 1].depth - data[i].depth);
     grossThickness += dz;
-    
+
     const { isNetPay, isNetReservoir } = evaluateNetPay(data[i], cutoffs);
-    
+
     if (isNetReservoir) {
       netReservoirThickness += dz;
     }
-    
+
     if (isNetPay) {
       netPayThickness += dz;
       sumPhi += data[i].phi * dz;
@@ -654,9 +661,9 @@ export function calculateGradientIntersection(
   // grad1 * (D - d1) + p1 = grad2 * (D - d2) + p2
   // grad1*D - grad1*d1 + p1 = grad2*D - grad2*d2 + p2
   // D * (grad1 - grad2) = p2 - p1 + grad1*d1 - grad2*d2
-  
+
   if (Math.abs(grad1 - grad2) < 0.001) return null;
-  
+
   return (p2 - p1 + grad1 * d1 - grad2 * d2) / (grad1 - grad2);
 }
 
@@ -665,11 +672,11 @@ export function calculateCapillaryRise(sigma: number, theta: number, rhoW: numbe
   // Conver theta to radians
   const thetaRad = (theta * Math.PI) / 180;
   const deltaRho = Math.abs(rhoW - rhoO);
-  
+
   if (deltaRho === 0 || r === 0) return 0;
-  
+
   const g = 32.174; // standard gravity ft/s^2 (can be adjusted for units)
-  
+
   // Return the calculated rise
   return (2 * sigma * Math.cos(thetaRad)) / (r * g * deltaRho);
 }
