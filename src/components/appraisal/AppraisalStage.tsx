@@ -26,7 +26,7 @@ export function AppraisalStage() {
     vshale: 0.1, dtShale: 100, dphiShale: 0.15, nphiShale: 0.3,
     applyShaleCorrection: false
   });
-  const [vshaleInp, setVshaleInp] = useState<any>({ gr: 85, grClean: 20, grClay: 120, method: 'larionov_tertiary' });
+  const [vshaleInp, setVshaleInp] = useState<any>({ gr: 85, grClean: 20, grShale: 120, method: 'larionov_tertiary' });
   const [saturationInp, setSaturationInp] = useState<any>({ rt: 2.5, phi: 0.18, rw: 0.05, a: 1, m: 2, n: 2, method: 'archie' });
   const [permeabilityInp, setPermeabilityInp] = useState<any>({ phi: 0.18, swir: 0.2, c: 0.1, method: 'tixier' });
   const [multiminInp, setMultiminInp] = useState<any>({ rhob: 2.45, nphi: 0.15, pef: 3.2, rhoFluid: 1.0, hiFluid: 1.0 });
