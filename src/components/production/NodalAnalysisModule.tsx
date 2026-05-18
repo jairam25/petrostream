@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
    Network, Settings, Activity, GitMerge, AlertCircle, Link2, Link2Off
@@ -60,6 +60,7 @@ export function NodalAnalysisModule() {
    }), [appraisal, drilling]);
 
    const [hasUpstreamData, setHasUpstreamData] = useState(false);
+   const lastPersistedOpRef = useRef<{ q: number; pwf: number } | null>(null);
 
    // Reservoir IPR Inputs
    const [pr, setPr] = useState(upstreamDefaults.pr);
@@ -128,76 +129,93 @@ export function NodalAnalysisModule() {
       };
    }, [pr, k, h, s, whp, depth, tubingId, gor, wc]);
 
-   // Persist nodal operating point to Production layer for downstream stages
+   // Persist nodal operating point to Production layer for downstream stages.
+   // NOTE: We guard with a ref to avoid infinite loops from reading back
+   // production?.history?.[0]?.records in the effect body.
    useEffect(() => {
-      if (nodalData.opPoint) {
-         const prodRecord = {
-            date: new Date().toISOString().slice(0, 7),
-            oilRate: Math.round(nodalData.opPoint.q),
-            gasRate: Math.round(nodalData.opPoint.q * (gor / 1000)),
-            waterRate: Math.round(nodalData.opPoint.q * wc),
-            liquidRate: Math.round(nodalData.opPoint.q + nodalData.opPoint.q * wc),
-            waterCut: wc,
-            gor,
-            glr: gor,
-            chokeSize: 24,
-            fthp: whp,
-            fchp: whp * 0.8,
-            fbhP: Math.round(nodalData.opPoint.pwf),
-            reservoirPressure: pr,
-            cumulativeOil: 0,
-            cumulativeGas: 0,
-            cumulativeWater: 0,
-            status: 'producing' as const,
-         };
-         updateProduction({
-            history: [
-               {
-                  wellId: 'PROD-001',
-                  records: (
-                     production?.history?.[0]?.records
-                        ? [...production.history[0].records, prodRecord]
-                        : [prodRecord]
-                  ),
-               },
-            ],
-            fieldAggregate: {
-               ...(production?.fieldAggregate ?? {
-                  totalOilRate: 0,
-                  totalGasRate: 0,
-                  totalWaterRate: 0,
-                  totalLiquidRate: 0,
-                  fieldWaterCut: 0,
-                  fieldGOR: 0,
-                  cumulativeOil: 0,
-                  recoveryFactor: 0,
-               }),
-               totalOilRate: Math.round(nodalData.opPoint.q),
-               totalGasRate: Math.round(nodalData.opPoint.q * (gor / 1000)),
-               totalWaterRate: Math.round(nodalData.opPoint.q * wc),
-               totalLiquidRate: Math.round(nodalData.opPoint.q + nodalData.opPoint.q * wc),
-               fieldWaterCut: wc,
-               fieldGOR: gor,
-            },
-            facilities: {
-               ...(production?.facilities ?? {
-                  separatorPressures: { hp: 0, ip: 0, lp: 0 },
-                  exportSpec: { bsw: 0, salt: 0, rvp: 0, status: 'on-spec' },
-                  gasExportRate: 0,
-                  waterInjectionRate: 0,
-                  gasLiftRate: 0,
-                  chemicalInjection: [],
-               }),
-               separatorPressures: { hp: whp, ip: whp * 0.5, lp: whp * 0.2 },
-            },
-         });
+      if (!nodalData.opPoint) return;
+
+      const { q, pwf } = nodalData.opPoint;
+      // Skip if this exact operating point was already persisted
+      if (
+         lastPersistedOpRef.current &&
+         lastPersistedOpRef.current.q === q &&
+         lastPersistedOpRef.current.pwf === pwf
+      ) {
+         return;
       }
-   }, [nodalData.opPoint, gor, wc, whp, pr, production?.history?.[0]?.records]);
+      lastPersistedOpRef.current = { q, pwf };
+
+      const prodRecord = {
+         date: new Date().toISOString().slice(0, 7),
+         oilRate: Math.round(q),
+         gasRate: Math.round(q * (gor / 1000)),
+         waterRate: Math.round(q * wc),
+         liquidRate: Math.round(q + q * wc),
+         waterCut: wc,
+         gor,
+         glr: gor,
+         chokeSize: 24,
+         fthp: whp,
+         fchp: whp * 0.8,
+         fbhP: Math.round(pwf),
+         reservoirPressure: pr,
+         cumulativeOil: 0,
+         cumulativeGas: 0,
+         cumulativeWater: 0,
+         status: 'producing' as const,
+      };
+
+      // Read the store snapshot directly (outside of render cycle) so the
+      // effect is not re-queued by a change to its own dependency list.
+      const existingRecords = production?.history?.[0]?.records ?? [];
+      const updatedRecords = [...existingRecords, prodRecord];
+
+      updateProduction({
+         history: [
+            {
+               wellId: 'PROD-001',
+               records: updatedRecords,
+            },
+         ],
+         fieldAggregate: {
+            ...(production?.fieldAggregate ?? {
+               totalOilRate: 0,
+               totalGasRate: 0,
+               totalWaterRate: 0,
+               totalLiquidRate: 0,
+               fieldWaterCut: 0,
+               fieldGOR: 0,
+               cumulativeOil: 0,
+               recoveryFactor: 0,
+            }),
+            totalOilRate: Math.round(q),
+            totalGasRate: Math.round(q * (gor / 1000)),
+            totalWaterRate: Math.round(q * wc),
+            totalLiquidRate: Math.round(q + q * wc),
+            fieldWaterCut: wc,
+            fieldGOR: gor,
+         },
+         facilities: {
+            ...(production?.facilities ?? {
+               separatorPressures: { hp: 0, ip: 0, lp: 0 },
+               exportSpec: { bsw: 0, salt: 0, rvp: 0, status: 'on-spec' },
+               gasExportRate: 0,
+               waterInjectionRate: 0,
+               gasLiftRate: 0,
+               chemicalInjection: [],
+            }),
+            separatorPressures: { hp: whp, ip: whp * 0.5, lp: whp * 0.2 },
+         },
+      });
+   }, [nodalData.opPoint, gor, wc, whp, pr]);
 
    // Combined data for Recharts (needs to share X-axis which is Q)
    const chartData = useMemo(() => {
       const data = [];
-      const maxQ = Math.max(...nodalData.iprPts.map(d => d.q), ...nodalData.vlpPts.map(d => d.q));
+      const allQs = [...nodalData.iprPts.map(d => d.q), ...nodalData.vlpPts.map(d => d.q)];
+      if (allQs.length === 0) return [];
+      const maxQ = Math.max(...allQs);
       for (let q = 0; q <= maxQ; q += (maxQ / 50)) {
          // Interpolate IPR
          let pwf_ipr = null;
