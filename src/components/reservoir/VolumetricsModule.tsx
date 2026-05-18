@@ -204,7 +204,7 @@ function computeTornado(baseParams: {
 // -----------------------------------------------------------------------
 export function VolumetricsModule() {
     // ──────────────── Store hooks ────────────────
-    const { data: explorationData } = useSimulationStore(s => ({ data: s.exploration }));
+    const explorationData = useSimulationStore(s => s.exploration);
     const { data: appraisalData, update: updateAppraisal, reset: resetAppraisal } = useAppraisal();
     const { data: reservesData, update: updateReserves, reset: resetReserves } = useReserves();
     const updateConnection = useSimulationStore(s => s.updateConnection);
