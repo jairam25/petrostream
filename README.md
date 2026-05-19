@@ -4,14 +4,14 @@
 
 **A high-fidelity, browser-based petroleum engineering simulation platform covering the full oil & gas lifecycle — from seismic exploration to retail distribution.**
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-GitHub_Pages-blue?style=for-the-badge&logo=github)](https://jairam25.github.io/petrostream/)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-GitHub_Pages-blue?style=for-the-badge&logo=github)](https://jairam25.github.io/Petrostream/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-green?style=for-the-badge)](https://github.com/jairam25/Petrostream/blob/main/LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-99.9%25-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://github.com/jairam25/Petrostream)
 [![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://github.com/jairam25/Petrostream)
 
 **138,000+ lines of code · 30+ simulation modules · 12 interconnected data layers · 100% client-side**
 
-[Live Demo](https://jairam25.github.io/petrostream/) · [Report Bug](https://github.com/jairam25/Petrostream/issues) · [Request Feature](https://github.com/jairam25/Petrostream/issues)
+[Live Demo](https://jairam25.github.io/Petrostream/) · [Report Bug](https://github.com/jairam25/Petrostream/issues) · [Request Feature](https://github.com/jairam25/Petrostream/issues)
 
 </div>
 
