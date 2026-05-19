@@ -4,7 +4,7 @@ import path from 'path';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/petrostream/',
+  base: '/Petrostream/',
   plugins: [react(), tailwindcss()],
   build: {
     outDir: 'dist',
