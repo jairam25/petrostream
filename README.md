@@ -145,7 +145,7 @@ npm run lint
 
 ## Live Demo
 
-👉 **[jairam25.github.io/petrostream](https://jairam25.github.io/petrostream/)**
+👉 **[jairam25.github.io/petrostream](https://jairam25.github.io/Petrostream/)**
 
 ---
 
